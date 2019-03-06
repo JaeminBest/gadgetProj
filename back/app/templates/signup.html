@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+<!-- defining render_field macro function in _formhelpers.html,  -->
+{% from "/includes/_formhelpers.html" import render_field %}
+
+{% block body %}
+<div class="container bg-light position-relative">
+  <div class="text-center">
+    <h1 class="h3 mb-3 font-weight-normal">Sign Up</h1>
+    <h2 class="h3 mb-3 font-weight-normal"> Please Fill In Required Form </h2>
+  </div>
+  <form method="POST", action="/signup">
+    <dl>
+      {{ render_field(form.username) }}
+      {{ render_field(form.email) }}
+      {{ render_field(form.password) }}
+    </dl>
+    <p><input type="submit" value="Submit">
+  </form>
+</div>
+
+{% endblock %}
