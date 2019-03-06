@@ -2,11 +2,11 @@
 # author : jaemin kim
 # details : front-end program that works as web page, implemented basic API
 
-from flask import render_template, redirect, request, session, jsonify
+from flask import render_template, redirect, request, session, jsonify, url_for
 
 # connecting DB
 from app import app, db, engine
-from app.models import *
+from app.models import User, Edit, Original
 from sqlalchemy.sql import text
 
 # for all form of flask, rendering field ...etc
@@ -16,10 +16,10 @@ from flask_wtf import FlaskForm
 #from wtforms import StringField, PasswordField, BooleanField, Form, validators
 #from wtforms.validators import InputRequired, Email, Length
 #from werkzeug.security import generate_password_hash, check_password_hash
-#from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 # for test display image
-from base64 import b64encode
+from base64 import b64encode, b64decode
 
 @app.route('/')
 def home():
@@ -37,6 +37,56 @@ def request_checking():
         return f'{req}'
     else:
         return "appropriate request has not received"
+
+def check_db(user_id):
+    #query database to pass object to the callback
+    db_check = User.query.get(user_id)
+    UserObject = User(username=db_check['username'], email=db_check['email'], password=db_check['password'])
+    if UserObject.id == user_id:
+        return UserObject
+    else:
+        return None
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return check_db(id)
+
+# /login : login to account
+@app.route('/admin/login', methods = ['GET', 'POST'])
+def login():
+    db.session.expire_all()
+    res = {}
+    req = request.get_json()
+    if request.method == "POST":
+        if ("username" in req) and ("password" in req):
+            #username_1 = req['username']
+            #password_1 = req['password']
+            # return user_name
+            sql = """
+            SELECT user.user_id AS id, user.username AS username, user.email AS email, user.password AS password, user.deleted AS deleted
+            FROM user
+            WHERE user.username = :username_1
+            AND user.password = :password_1
+            """
+            param = {'username_1' : req['username'], 'password_1' : req['password']}
+            users = engine.execute(text(sql), param).fetchall()
+
+            if users == None:
+                return "User is not registered. Check your username or password."
+            else:
+                for user in users:
+                    res[f"'{user.id}'"] = user
+                    return f"'{res}''"
+        else:
+            return 'Please enter username and password'
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    # return redirect(url_for('next')) #this code is completed when the next url on the react frontend is established
+
 
 # /show_all_user : show all user DB
 @app.route('/admin/show_all_user')
@@ -214,6 +264,93 @@ def show_one_image():
         else:
             return "Bad request, request should be json object that include key of 'id'"
     return "(show_one_image)No request received, request should be GET method"
+
+# /save_edited_image : post the edited image to EDIT db given edited photo, user_id, org_id
+@app.route('/admin/save_edited_image', methods=['POST'])
+def save_edited_image():
+    db.session.expire_all()
+    req = request.get_json()
+    res = {}
+    if request.method == 'POST':
+        # if ("user_id" in req) and ("org_id" in req) and ("photo" in req):
+        if ("user_id" in req) and ("org_id" in req) and ("photo" in req) and ("date_edited" in req):
+            # assume photo is in string base64 form. we need to change to longblob form
+            photo_decoded = b64decode(req['photo'])
+
+            sql1 = """
+            INSERT INTO edit (user_id, org_id, photo, date_edited)
+            VALUES (:user_id, :org_id, :photo, :date_edited)
+            """
+            param1 = {'user_id' : req['user_id'], 'org_id' : req['org_id'], 'photo' : photo_decoded, 'date_edited': req['date_edited']}
+            engine.execute(text(sql1), param1)
+            
+            sql2= """
+            SELECT LAST_INSERT_ID()
+            FROM edit
+            """
+            #param2 = {'user_id_1' : req['user_id'], 'org_id_1' : req['org_id']}
+            
+            #edits  = engine.execute(text(sql2), param2).fetchall()
+            last_edit_id = engine.execute(text(sql2)).fetchone()[0]
+            
+            sql3 = """
+            SELECT edit.edit_id AS id, edit.user_id AS user_id, edit.org_id AS org_id, edit.photo AS photo
+            FROM edit
+            WHERE edit.edit_id = :last_edit_id
+            """
+            param3 = {'last_edit_id' : last_edit_id}
+            edit = engine.execute(text(sql3), param3).fetchone()
+            return f'{edit}'
+            edit.set()
+            #return f'{edit}'
+
+            try:
+                connection = engine.connect()
+                trans = connection.begin()
+                trans.commit()
+            except:
+                trans.rollback()
+                return f"commit failed, failure in system!"
+            
+        else:
+            return f"Bad request, request should be json object that inclue key of 'user_id', 'org_id', 'photo', 'date'!"
+    else:    
+        return f"(save_edited_image)No request received, request should be POST method"
+
+@app.route('/admin/delete_edited_image', methods=['GET'])
+def delete_edited_image():
+    req = request.get_json()
+    res = {}
+    if request.method == 'GET':
+        if 'edit_id' in req:
+            sql1 = """
+            SELECT edit.edit_id AS id, edit.user_id AS user_id, edit.org_id AS org_id, edit.deleted AS deleted
+            FROM edit
+            WHERE user.edit_id = :param_1
+            """
+            user_temp = engine.execute(text(sql1), {'param_1': req['user_id']}).fetchone()
+            if not user_temp == None:
+                if not user_temp.deleted:
+                    sql2 = """
+                    UPDATE edit
+                    SET deleted=:deleted
+                    WHERE edit.edit_id = :edit_id
+                    """
+                    param = {'deleted' : True,'edit_id' : req['edit_id']}
+                    engine.execute(text(sql2), param)
+                    try:
+                        connection = engine.connect()
+                        trans = connection.begin()
+                        trans.commit()
+                    except:
+                        trans.rollback()
+                        return "commit failed, failure in system!"
+                    return redirect(url_for('show_all_edit'))
+            else:
+                return "No edited image having this edit_id"
+        else:
+            return "Bad request, request should be json object that include key of 'edit_id'"
+    return "(test_unregister)No request received, request should be GET method"
 
 
 # /display_image : display original image by id
