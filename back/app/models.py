@@ -67,7 +67,7 @@ class Edit(db.Model):
 
     # MUST needed for basic setting of metadata
     def set(self):
-        org_temp = Original.query.get(self.user_id)
+        org_temp = Original.query.get(self.org_id)
         org_temp.mark_num += 1
         #self.image_path = org_temp.path
         self.mark_id = org_temp.mark_num
@@ -131,7 +131,7 @@ class Original(db.Model):
         return res
 
     def __repr__(self):
-        return f"Original(id='{self.id}',path='{self.path}',iamge_id='{self.image_code}',seg_num='{self.seg_num}',part_num='{self.part_num}', mark_num='{self.mark_num}',collection_num='{self.collection_num}')"
+        return f"Original(id='{self.id}',path='{self.path}',image_id='{self.image_code}',seg_num='{self.seg_num}',part_num='{self.part_num}', mark_num='{self.mark_num}',collection_num='{self.collection_num}')"
 
 # among marked image, collect best matching one OR top-k image in collected directory
 # therefore, neccessary input will be marked_id

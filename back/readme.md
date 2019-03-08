@@ -82,4 +82,7 @@ Developer Guide
 - localhost:xxxx/admin/test_register
 - localhost:xxxx/admin/test_unregister
 - localhost:xxxx/admin/show_one_image
+- localhost:xxxx/admin/show_one_edit
+- localhost:xxxx/admin/save_edited_image
+- localhost:xxxx/admin/delete_edited_image
 - localhost:xxxx/admin/display_one_image
