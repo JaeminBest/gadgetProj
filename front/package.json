@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
+    "classnames": "^2.2.6",
     "fabric": "^2.7.0",
     "include-media": "^1.4.9",
     "node-sass": "^4.11.0",
