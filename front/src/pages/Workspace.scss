@@ -1,0 +1,72 @@
+@import 'styles/utils.scss';
+
+.entire {
+    //width: 300px;
+    width: 100vw;
+    height: calc(100vh - 7rem);
+    
+}
+
+.sketch-box {
+    border: '5px solid black';
+    position: relative;
+    float: left;
+    left: 1rem;
+    width: 70vw;
+    height: 300px;
+    top: 25rem;
+    overflow: auto;
+    
+}
+
+.right-buttons {
+    position: relative;
+    top: 25rem;
+    float: right;
+    right: 10%;
+}
+
+.zoom-buttons {
+    position: relative;
+    top: 50rem;
+    float: left;
+    //left: 1rem;
+    
+
+    .x05-button {
+        position: relative;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .x1-button{
+        position: relative;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .x2-button{
+        position: relative;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .x4-button{
+        position: relative;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+
+}
+
+
+/*
+.sketch-field {
+    border: '5px solid black';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 100%;
+    height: auto;
+
+}
+*/
