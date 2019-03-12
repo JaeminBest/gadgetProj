@@ -166,12 +166,15 @@ class Workspace extends Component {
     render () {
         console.log("render");
         return (
-            <div className="entire brown lighten-5">
-                <div className = "instructions">
+        <fragment className="fagment">
 
-                </div>
+            <div className = "instructions brown lighten-5">
+              Please mark the <b>most prominent defect </b>in the image.<br/>
+                When your job is done, <br/>
+                please click the <b>"Submit"</b> button to create a new labeling function!<br/>
+            </div>
+            <div className = "sketch-box brown lighten-5">
 
-                <div className="sketch-box">
                     <SketchField className = "sketch-field"
                                  ref={c => (this._sketch = c)}
                                  width={this.state.width * this.state.zoom_factor}
@@ -179,24 +182,22 @@ class Workspace extends Component {
                                  tool={Tools.Pencil} 
                                  lineColor='red'
                                  lineWidth={3}/>
-                </div>
-                
-                <div className = {cx("right-buttons")}>
-                    <button className={cx("reset-button", "btn", "blue")} onClick = {this.handleReset}>Reset</button>
-                    <button className={cx("submit-button", "btn", "waves-effect", "waves-light", "blue")} onClick = {this.handleUpload} type="submit" name="action">
+
+            </div>
+            <div className = {cx("buttons")}>   
+                    <button className={cx("reset-button", "btn", "$oc-gray-9")} onClick = {this.handleReset}>Reset</button>
+                    <button className={cx("x05-button", "waves-effect", "waves-light", "btn", "$oc-gray-9")} onClick = {this.handleReduce_2}>X0.5</button>
+                    <button className={cx("x1-button", "waves-effect", "waves-light", "btn", "$oc-gray-9")} onClick = {this.handleZoom_1}>X1</button>
+                    <button className={cx("x2-button", "waves-effect", "waves-light", "btn", "$oc-gray-9")} onClick = {this.handleZoom_2}>X2</button>
+                    <button className={cx("x4-button", "waves-effect", "waves-light", "btn", "$oc-gray-9")} onClick = {this.handleZoom_4}>X4</button>
+                    <button className={cx("submit-button", "btn", "waves-effect", "waves-light", "$oc-gray-9")} onClick = {this.handleUpload} type="submit" name="action">
                         Submit<i className={cx("material-icons", "right")}>send</i>
                     </button>
                 </div>
 
-                <div className = "zoom-buttons">
-                    <button className={cx("x05-button", "waves-effect", "waves-light", "btn", "blue", "lighten-2")} onClick = {this.handleReduce_2}>X0.5</button>
-                    <button className={cx("x1-button", "waves-effect", "waves-light", "btn", "blue", "lighten-2")} onClick = {this.handleZoom_1}>X1</button>
-                    <button className={cx("x2-button", "waves-effect", "waves-light", "btn", "blue", "lighten-2")} onClick = {this.handleZoom_2}>X2</button>
-                    <button className={cx("x4-button", "waves-effect", "waves-light", "btn", "blue", "lighten-2")} onClick = {this.handleZoom_4}>X4</button>
-                </div>
+
+        </fragment>
                 
-                
-            </div>
         );
     }
 }
