@@ -51,19 +51,17 @@ class Edit(db.Model):
     # deleted = db.Column(db.Boolean, default=False)
 
     # image_path = db.Column(db.String(500)) # decide by clicking specific original image
-    mark_id = db.Column(db.Integer, default=0 ) 
+    mark_id = db.Column(db.Integer, default=0 )
     #mark_path = db.Column(db.String(100), unique=True, default=f"{id}")
     date_edited = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
     # list of user that edit : self.editor
     # list of img that edit : self.img
     deleted = db.Column(db.Boolean, default=False)
 
-    def __init__(self,photo,user_id,org_id, date_edited):
+    def __init__(self,photo,user_id,org_id):
         self.photo = photo
         self.user_id = user_id
         self.org_id = org_id
-        self.date_edited = date_edited
-        #self.date_edited = date_edited
 
     # MUST needed for basic setting of metadata
     def set(self):

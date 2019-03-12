@@ -208,16 +208,16 @@ def test_register():
 # /test_unregister : unregister one user by user_id
 @app.route('/admin/test_unregister', methods=['GET'])
 def test_unregister():
-    req = request.get_json()
+    user_id = request.args.get('id', default = '0', type = str)
     res = {}
     if request.method == 'GET':
-        if 'user_id' in req:
+        if user_id != '0':
             sql1 = """
             SELECT user.user_id AS id, user.username AS username, user.email AS email, user.password AS password, user.deleted AS deleted
             FROM user
             WHERE user.user_id = :param_1
             """
-            user_temp = engine.execute(text(sql1), {'param_1': req['user_id']}).fetchone()
+            user_temp = engine.execute(text(sql1), {'param_1': user_id}).fetchone()
             if not user_temp == None:
                 if not user_temp.deleted:
                     sql2 = """
@@ -295,7 +295,18 @@ def show_one_edit():
     res = {}
     if request.method == 'GET':
         if edit_id != '0':
-            edit_temp = db.session.query(Edit).get(edit_id)
+            sql1 = """
+            SELECT edit.edit_id AS id,
+            edit.user_id AS user_id,
+            edit.org_id AS org_id,
+            edit.mark_id AS mark_id,
+            edit.date_edited AS date_edited,
+            edit.deleted AS deleted,
+            edit.photo AS photo
+            FROM edit
+            WHERE edit.edit_id = :param_1
+            """
+            edit_temp = engine.execute(text(sql1), {'param_1': edit_id}).fetchone()
             if not edit_temp == None:
                 db.session.refresh(edit_temp)
                 res['id'] = edit_temp.id
@@ -321,31 +332,25 @@ def show_one_edit():
 def save_edited_image():
     # db.session.expire_all()
     req = request.get_json()
-    
+
     if request.method == 'POST':
-        # if ("user_id" in req) and ("org_id" in req) and ("photo" in req):
-        if ("user_id" in req) and ("org_id" in req) and ("photo" in req) and ("date_edited" in req):
+        if ("user_id" in req) and ("org_id" in req) and ("photo" in req):
             # assume photo is in string base64 form. we need to change to longblob form
             photo_decoded = b64decode(req['photo'])
 
-            edited = Edit(user_id=req['user_id'], org_id=req['org_id'], photo=photo_decoded, date_edited=req['date_edited'])
-
-
-            db.session.add(edited)
+            new_edit = Edit(photo_decoded, req["user_id"], req["org_id"])
+            db.session.add(new_edit)
             db.session.commit()
-            #db.session.refresh(edited)
-            # edited_id = edited.id
-            # edited.set
 
-            edit_obj=db.session.query(Edit).get(edited.id)
-            edit_obj.set()
+            new_edit.set()
+            db.session.commit()
 
             #return f"'{edit_obj.mark_id}'"
             return redirect(url_for('show_all_edit'))
-            
+
         else:
             return "Bad request, request should be json object that inclue key of 'user_id', 'org_id', 'photo', 'date'!"
-    else:    
+    else:
         return f"(save_edited_image)No request received, request should be POST method"
 
 @app.route('/admin/delete_edited_image', methods=['GET'])
@@ -369,7 +374,7 @@ def delete_edited_image():
                     """
                     param = {'deleted' : True,'edit_id' : req['edit_id']}
                     engine.execute(text(sql2), param)
-                    
+
                     return f"'{param}'"
 
                     # try:
@@ -386,19 +391,3 @@ def delete_edited_image():
             return "Bad request, request should be json object that include key of 'edit_id'"
     else:
         return "(delete_edited_image)No request received, request should be GET method"
-
-
-# /display_image : display original image by id
-@app.route('/admin/display_image', methods=['GET'])
-def test_diplay_image():
-    db.session.expire_all()
-    req = request.get_json()
-    res = {}
-    if request.method == 'GET':
-        if "org_id" in req:
-            org_temp = db.session.query(Original).get(req['org_id'])
-            res = b64encode(org_temp.photo)
-            return render_template("show.html",res=res)
-        else:
-            return "Bad request, request should be json object that include key of 'id'"
-    return "(test_display_image)No request received, request should be GET method"
