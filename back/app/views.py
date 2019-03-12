@@ -75,7 +75,7 @@ def login():
             param = {'username_1' : req['username'], 'password_1' : req['password']}
             users = engine.execute(text(sql), param).fetchall()
 
-            if users == None:
+            if users is None:
                 return "User is not registered. Check your username or password."
             else:
                 for user in users:
@@ -102,6 +102,19 @@ def show_all_user():
         res[f"'{user.id}'"] = user
     return f"'{res}'"
 
+# /show_all_edit : show all edit DB
+@app.route('/admin/show_all_edit')
+def show_all_edit():
+    res = {}
+    sql = """
+    SELECT edit.edit_id AS id, edit.user_id AS user_id, edit.org_id AS org_id, edit.date_edited AS date_edited, edit.deleted AS deleted
+    FROM edit
+    WHERE edit.deleted = false
+    """
+    edits = engine.execute(text(sql)).fetchall()
+    for edit in edits:
+        res[f"'{edit.id}'"] = edit
+    return f"'{res}'"
 
 # /show_one_user : show one user by user_id
 @app.route('/admin/show_one_user', methods=['GET'])
@@ -236,18 +249,27 @@ def show_one_image():
     res = {}
     if request.method == 'GET':
         if org_id != '0':
-            org_temp = db.session.query(Original).get(org_id)
+            sql1 = """
+            SELECT original.org_id AS id,
+            original.path AS path,
+            original.image_code AS image_code,
+            original.seg_num AS seg_num,
+            original.part_num AS part_num,
+            original.mark_num AS mark_num,
+            original.collection_num AS collection_num,
+            original.photo AS photo
+            FROM original
+            WHERE original.org_id = :param_1
+            """
+            org_temp = engine.execute(text(sql1), {'param_1': org_id}).fetchone()
             if not org_temp == None:
-                db.session.refresh(org_temp)
                 res['id'] = org_temp.id
                 res['path'] = org_temp.path
-                res['image_id'] = org_temp.image_code
+                res['image_code'] = org_temp.image_code
                 res['seg_num'] = org_temp.seg_num
                 res['part_num'] = org_temp.part_num
                 res['mark_num'] = org_temp.mark_num
-                res['select_num'] = org_temp.collection_num
-                res['history'] = org_temp.history
-                res['selected'] = org_temp.collected
+                res['collection_num'] = org_temp.collection_num
 
                 photo_encoded = b64encode(org_temp.photo)
                 photo_decoded = photo_encoded.decode('utf-8')
@@ -265,72 +287,81 @@ def show_one_image():
             return "Bad request, request should be json object that include key of 'id'"
     return "(show_one_image)No request received, request should be GET method"
 
+# /show_one_edit : show one edited image by edit_id(only detail)
+@app.route('/admin/show_one_edit', methods=['GET'])
+def show_one_edit():
+    edit_id = request.args.get('id', default = '0', type = str)
+    db.session.expire_all()
+    res = {}
+    if request.method == 'GET':
+        if edit_id != '0':
+            edit_temp = db.session.query(Edit).get(edit_id)
+            if not edit_temp == None:
+                db.session.refresh(edit_temp)
+                res['id'] = edit_temp.id
+                res['user_id'] = edit_temp.user_id
+                res['image_id'] = edit_temp.org_id
+                res['mark_id'] = edit_temp.mark_id
+                res['date_edited'] = edit_temp.date_edited
+                res['deleted'] = edit_temp.deleted
+
+                photo_encoded = b64encode(edit_temp.photo)
+                photo_decoded = photo_encoded.decode('utf-8')
+                res['photo'] = photo_decoded
+
+                return jsonify(res)
+            else:
+                return "no edited image found"
+        else:
+            return "Bad request, request should be json object that include key of 'id'"
+    return "(show_edited_image)No request received, request should be GET method"
+
 # /save_edited_image : post the edited image to EDIT db given edited photo, user_id, org_id
 @app.route('/admin/save_edited_image', methods=['POST'])
 def save_edited_image():
-    db.session.expire_all()
+    # db.session.expire_all()
     req = request.get_json()
-    res = {}
+    
     if request.method == 'POST':
         # if ("user_id" in req) and ("org_id" in req) and ("photo" in req):
         if ("user_id" in req) and ("org_id" in req) and ("photo" in req) and ("date_edited" in req):
             # assume photo is in string base64 form. we need to change to longblob form
             photo_decoded = b64decode(req['photo'])
 
-            sql1 = """
-            INSERT INTO edit (user_id, org_id, photo, date_edited)
-            VALUES (:user_id, :org_id, :photo, :date_edited)
-            """
-            param1 = {'user_id' : req['user_id'], 'org_id' : req['org_id'], 'photo' : photo_decoded, 'date_edited': req['date_edited']}
-            engine.execute(text(sql1), param1)
-            
-            sql2= """
-            SELECT LAST_INSERT_ID()
-            FROM edit
-            """
-            #param2 = {'user_id_1' : req['user_id'], 'org_id_1' : req['org_id']}
-            
-            #edits  = engine.execute(text(sql2), param2).fetchall()
-            last_edit_id = engine.execute(text(sql2)).fetchone()[0]
-            
-            sql3 = """
-            SELECT edit.edit_id AS id, edit.user_id AS user_id, edit.org_id AS org_id, edit.photo AS photo
-            FROM edit
-            WHERE edit.edit_id = :last_edit_id
-            """
-            param3 = {'last_edit_id' : last_edit_id}
-            edit = engine.execute(text(sql3), param3).fetchone()
-            return f'{edit}'
-            edit.set()
-            #return f'{edit}'
+            edited = Edit(user_id=req['user_id'], org_id=req['org_id'], photo=photo_decoded, date_edited=req['date_edited'])
 
-            try:
-                connection = engine.connect()
-                trans = connection.begin()
-                trans.commit()
-            except:
-                trans.rollback()
-                return f"commit failed, failure in system!"
+
+            db.session.add(edited)
+            db.session.commit()
+            #db.session.refresh(edited)
+            # edited_id = edited.id
+            # edited.set
+
+            edit_obj=db.session.query(Edit).get(edited.id)
+            edit_obj.set()
+
+            #return f"'{edit_obj.mark_id}'"
+            return redirect(url_for('show_all_edit'))
             
         else:
-            return f"Bad request, request should be json object that inclue key of 'user_id', 'org_id', 'photo', 'date'!"
+            return "Bad request, request should be json object that inclue key of 'user_id', 'org_id', 'photo', 'date'!"
     else:    
         return f"(save_edited_image)No request received, request should be POST method"
 
 @app.route('/admin/delete_edited_image', methods=['GET'])
 def delete_edited_image():
     req = request.get_json()
-    res = {}
+    # res = {}
     if request.method == 'GET':
         if 'edit_id' in req:
             sql1 = """
             SELECT edit.edit_id AS id, edit.user_id AS user_id, edit.org_id AS org_id, edit.deleted AS deleted
             FROM edit
-            WHERE user.edit_id = :param_1
+            WHERE edit.edit_id = :param_1
             """
-            user_temp = engine.execute(text(sql1), {'param_1': req['user_id']}).fetchone()
-            if not user_temp == None:
-                if not user_temp.deleted:
+            edit_temp = engine.execute(text(sql1), {'param_1': req['edit_id']}).fetchone()
+            if not edit_temp == None:
+                if not edit_temp.deleted:
                     sql2 = """
                     UPDATE edit
                     SET deleted=:deleted
@@ -338,19 +369,23 @@ def delete_edited_image():
                     """
                     param = {'deleted' : True,'edit_id' : req['edit_id']}
                     engine.execute(text(sql2), param)
-                    try:
-                        connection = engine.connect()
-                        trans = connection.begin()
-                        trans.commit()
-                    except:
-                        trans.rollback()
-                        return "commit failed, failure in system!"
-                    return redirect(url_for('show_all_edit'))
+                    
+                    return f"'{param}'"
+
+                    # try:
+                    #     connection = engine.connect()
+                    #     trans = connection.begin()
+                    #     trans.commit()
+                    # except:
+                    #     trans.rollback()
+                    #     return "commit failed, failure in system!"
+                    # return redirect(url_for('show_all_edit'))
             else:
                 return "No edited image having this edit_id"
         else:
             return "Bad request, request should be json object that include key of 'edit_id'"
-    return "(test_unregister)No request received, request should be GET method"
+    else:
+        return "(delete_edited_image)No request received, request should be GET method"
 
 
 # /display_image : display original image by id
