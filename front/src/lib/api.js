@@ -8,13 +8,23 @@ export function getImage(image_route, org_id) {
     });
 }
 
-export function postImage(user_id, org_id, upload_file, upload_route) {
-    return axios.post(`http://localhost:8000/${upload_route}`, {
-        user_id: `${user_id}`,
-        org_id: `${org_id}`,
-        upload_file: `${upload_file}`
-    });
+export function postImage(user_id, org_id, date, upload_file, upload_route) {
+    let body = {
+        user_id: user_id,
+        org_id: org_id,
+        date_edited: date,
+        photo: upload_file
+    }
+    return axios.post(`http://localhost:8000/${upload_route}`, body);
 }
+
+/*
+{
+    user_id: user_id,
+    org_id: org_id,
+    upload_file: `${upload_file}`
+}
+*/
 
 
 export function imageLoader(src) {
@@ -46,6 +56,12 @@ export function imageFixer(src, zoom_factor) {
             ctx.drawImage(img, 0, 0, width, height);
             const ctxUrl = ctx.canvas.toDataURL();
             
+            /*
+            let win = window.open();
+            win.document.write('<iframe src="data:image/png;base64,' + ctxUrl + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>')
+
+            */
+
             //console.log("context url : ",ctxUrl);
             resolve(ctxUrl);
             
@@ -54,18 +70,3 @@ export function imageFixer(src, zoom_factor) {
     })
 
 }
-
-/*
-export function imageZoom(img, zoom_factor) {
-    return new Promise((resolve, reject) => {
-        let width = 
-    });
-}
-
-
-
-/*
-export function postImageImm(image_body) {
-    return axios.post(`admin/request_checking`, image_body);
-}
-*/

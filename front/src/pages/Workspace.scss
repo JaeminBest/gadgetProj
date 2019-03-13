@@ -1,72 +1,83 @@
 @import 'styles/utils.scss';
-
-.entire {
-    //width: 300px;
+.fragment{
     width: 100vw;
     height: calc(100vh - 7rem);
-    
+    align-content: center
+}
+.instructions{
+    position: relative;
+    top: 5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    align-content: center;
+    width: 70vw;
+    height: auto;
+    font-size:36px;
 }
 
+.sketch-frame{
+    position:relative;
+    width: 70vw;
+    height:300px;
+    align-content: center;
+    
+}
 .sketch-box {
     border: '5px solid black';
     position: relative;
     float: left;
-    left: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
     width: 70vw;
     height: 300px;
-    top: 25rem;
+    top: 7.5rem;
     overflow: auto;
-    
+    align-content: center;
+    align-items: center;
+
+}
+.sketch-field{
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.right-buttons {
-    position: relative;
-    top: 25rem;
-    float: right;
-    right: 10%;
-}
-
-.zoom-buttons {
-    position: relative;
+.buttons {
+    position: absolute;
     top: 50rem;
-    float: left;
-    //left: 1rem;
-    
+    left: 50%;
+    transform: translateX(-50%);
+    width:auto;
+
+
+
+    .reset-button{
+        position:relative;
+        
+        width:auto;
+    }
 
     .x05-button {
         position: relative;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        width:auto;
     }
     .x1-button{
         position: relative;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        width:auto;
     }
     .x2-button{
         position: relative;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        width:auto;
     }
     .x4-button{
         position: relative;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        width:auto;
     }
-    
 
+    .submit-button{
+        position:relative;
+        width:auto;
+
+    }
 }
 
-
-/*
-.sketch-field {
-    border: '5px solid black';
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-
-    width: 100%;
-    height: auto;
-
-}
-*/
