@@ -333,12 +333,36 @@ def save_edited_image():
 
             db.session.add(edited)
             db.session.commit()
-            #db.session.refresh(edited)
+            db.session.refresh(edited)
             # edited_id = edited.id
             # edited.set
 
-            edit_obj=db.session.query(Edit).get(edited.id)
-            edit_obj.set()
+            #edit_obj=db.session.query(Edit).get(edited.id)
+            sql1 = '''
+            UPDATE edit
+            SET mark_id = mark_id + 1
+            WHERE edit.edit_id = :edit_id
+            '''
+            param1 = {'edit_id' : edited.id}
+            engine.execute(text(sql1), param1)
+
+            sql2 = '''
+            UPDATE original
+            SET mark_num = mark_num + 1
+            WHERE original.org_id = :org_id
+            '''
+            param2 = {'org_id' : req['org_id']}
+            engine.execute(text(sql2), param2)
+
+            try:
+                connection = engine.connect()
+                trans = connection.begin()
+                trans.commit()
+            except:
+                trans.rollback()
+                return "commit failed, failure in system!"
+            
+            # edit_obj.set()
 
             #return f"'{edit_obj.mark_id}'"
             return redirect(url_for('show_all_edit'))
