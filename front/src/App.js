@@ -1,25 +1,15 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
-import { Home, Workspace } from 'pages';
+import Workspace from './pages/Workspace.js';
 
-import { Header, Nav } from 'components';
+import { Header } from 'components';
 
 class App extends Component {
   render() {
     return (
-      <Router>
-        <div>
-          
-          <Nav/>
-          <Route exact path="/" component={Home}/>
-          <Route path="/workspace" component={Workspace}/>
-        </div>
-      </Router>
-      /*
       <div className="App">
-
+        <Header/>
+        <Workspace/>
       </div>
-      */
     );
   }
 }
