@@ -7,7 +7,8 @@
 .instructions{
     position: relative;
     top: 5rem;
-    left: 10rem;
+    left: 50%;
+    transform: translateX(-50%);
     align-content: center;
     width: 70vw;
     height: auto;
@@ -25,7 +26,8 @@
     border: '5px solid black';
     position: relative;
     float: left;
-    left: 10rem;
+    left: 50%;
+    transform: translateX(-50%);
     width: 70vw;
     height: 300px;
     top: 7.5rem;
@@ -43,36 +45,38 @@
 .buttons {
     position: absolute;
     top: 50rem;
-    left:30vw;
-    width:30vw;
+    left: 50%;
+    transform: translateX(-50%);
+    width:auto;
 
 
 
     .reset-button{
         position:relative;
-        width:4vw;
+        
+        width:auto;
     }
 
     .x05-button {
         position: relative;
-        width:4vw;
+        width:auto;
     }
     .x1-button{
         position: relative;
-        width:4vw;
+        width:auto;
     }
     .x2-button{
         position: relative;
-        width:4vw;
+        width:auto;
     }
     .x4-button{
         position: relative;
-        width:4vw;
+        width:auto;
     }
 
     .submit-button{
         position:relative;
-        width:10vw;
+        width:auto;
 
     }
 }
