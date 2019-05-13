@@ -25,7 +25,8 @@ connection = engine.connect()
 
 CORS(app)   # for react parameter passing
 
-from app import views, models, pattern_extractor
+from app import views,  pattern_extractor
+from app.models import User, Original, Edit
 
 # n corresponding to table number
 # n=1 user, n=2 edit, n=3 original, n=4 select
@@ -35,6 +36,23 @@ def reset():
     db.session.rollback()
     db.create_all()
 
+import csv
+import os
+from os.path import isfile, join
+
+root='/home/di_lab/skt_data/'
+datalist_dir = '/home/di_lab/skt_data/data_list/'
+def set_list (num):
+    list_dir = datalist_dir
+    with open(list_dir+str(num)+'.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        for i, row in enumerate(csv_reader):
+            if len(row) != 0:
+                if row[0] == 'ok':
+                    ok_list = row[1:]
+                elif row[0] == 'defects':
+                    de_list = row[1:]
+    return ok_list, de_list
 
 root = '/home/di_lab/skt_data/'
 img_db = './patterns_db/'
